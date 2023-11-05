@@ -4,7 +4,21 @@ import torch
 
 
 class ProjectedDistanceLoss(nn.Module):
-    def __init__(self, alpha=0.1, beta=0.1, gamma=0.1, power=0, plane_dist=True) -> None:
+    def __init__(self,
+                 alpha=0.1,
+                 beta=0.1,
+                 gamma=0.1,
+                 power=0,
+                 plane_dist=True) -> None:
+        """
+        Model constructor.
+
+        :param alpha:
+        :param beta:
+        :param gamma:
+        :param power:
+        :param plane_dist:
+        """
         super().__init__()
         self.alpha = alpha
         self.beta = beta
@@ -21,6 +35,18 @@ class ProjectedDistanceLoss(nn.Module):
                 inter_pos: torch.Tensor,
                 inter_grad: torch.Tensor,
                 rand_grad: torch.Tensor):
+        """
+        Forward propagation
+
+        :param points_distance:
+        :param points:
+        :param ray_dists:
+        :param inter_val:
+        :param inter_pos:
+        :param inter_grad:
+        :param rand_grad:
+        """
+
         if self.plane_dist:
             d_pos = inter_pos-points.unsqueeze(1)
             # Dot product
@@ -29,6 +55,7 @@ class ProjectedDistanceLoss(nn.Module):
             dist = dist.unsqueeze(-1)
         else:
             dist = ray_dists
+        
         weight = (1e-3 + ray_dists.max() - ray_dists)**self.power
         weight = weight * weight.numel() / weight.sum()
         inter_loss = F.l1_loss(inter_val, dist, reduction='none')

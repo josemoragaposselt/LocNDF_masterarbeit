@@ -11,7 +11,13 @@ from loc_ndf.utils import utils
 
 
 class DataModule(LightningDataModule):
+
     def __init__(self, cfg):
+        """
+        ????
+
+        :param cfg:
+        """
         super().__init__()
         self.cfg = cfg
         self.train_set = None
@@ -38,7 +44,11 @@ class DataModule(LightningDataModule):
 #################################################
 
 
-def interpolate_points(points, center, num=20, log=False, truncation_d=None):
+def interpolate_points(points, 
+                       center, 
+                       num=20, 
+                       log=False, 
+                       truncation_d=None):
     """points between center and enpoints
 
     Args:
@@ -63,7 +73,11 @@ def interpolate_points(points, center, num=20, log=False, truncation_d=None):
     return alpha * points[None, :] + (1-alpha) * center[None, :], dists
 
 
-def interpolate_points_batch(points, center, num=20, log=False, truncation_d=None):
+def interpolate_points_batch(points,
+                             center, 
+                             num=20, 
+                             log=False, 
+                             truncation_d=None):
     """points between center and enpoints
 
     Args:

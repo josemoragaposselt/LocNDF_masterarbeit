@@ -1,6 +1,11 @@
+"""
+shareable dataModule that encapsulates all the steps needed to process data
+"""
 from loc_ndf.utils import utils
 import tqdm
 from scipy.spatial.transform import Rotation as R
+# loader: wraps an interable around the dataset (samples and labels) 
+# to enable easy acces to the samples
 from torch.utils.data import Dataset, DataLoader
 from pytorch_lightning import LightningDataModule
 import numpy as np
@@ -8,12 +13,21 @@ from os.path import join
 
 
 class DataModule(LightningDataModule):
+    """
+    Datamodule that encapsulates all the steps to process data.
+
+    :ivar cfg: 
+    :ivar training_set:
+    """
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
         self.train_set = None
 
     def train_dataloader(self):
+        """
+        Method to generate the train dataloader and to place default transformations.
+        """
         data_set = self.get_train_set()
         loader = DataLoader(
             data_set,
@@ -23,14 +37,20 @@ class DataModule(LightningDataModule):
         return loader
 
     def val_dataloader(self):
+        """
+        Generates the validation dataloader. 
+        """
         data_set = MCLDataset(self.cfg['data']['val'])
         loader = DataLoader(
             data_set,
             num_workers=self.cfg['train']['num_workers'],
-            batch_size=1)
+            batch_size=1) 
         return loader
 
     def test_dataloader(self):
+        """
+        Method to generate the test dataloader.
+        """
         data_set = MCLDataset(self.cfg['data']['val'])
         loader = DataLoader(data_set,
                             num_workers=self.cfg['train']['num_workers'],
@@ -48,27 +68,33 @@ class DataModule(LightningDataModule):
 
 
 def interpolate_points(points, center, num=20, log=False, truncation_d=None):
-    """points between center and enpoints
-
-    Args:
-        points [3]: 
-        center [3]: 
-        num (int, optional): num_points. Defaults to 20.
-
-    Returns:
-        intermediate_points [n x 3]: intermediate_points
     """
+    Sample points along the lidar beam.
+    Points between center and enpoints
+
+    :param points [3]: points 
+    :param center [3]: scanner position 
+    :param num (int, optional): num_points. Defaults to 20
+    :param: log:          
+    :param truncation     
+    :return: intermediate_points [n x 3]: intermediate_points
+    """
+    # QST what is log
+    # QST what is truncation
+    # [] why dists is necessary
     if log:
         alpha = 1 - np.logspace(-1, 0, num, dtype=np.float32)[::-1, None]
         alpha = alpha/alpha.max()
     else:
         alpha = np.linspace(0, 1, num, dtype=np.float32)[:, None]
+    
+    # FIXME points-center done twice
     if truncation_d:
         dist = np.linalg.norm(points-center)
         if truncation_d < dist:
             alpha = 1-alpha[::-1] * truncation_d / dist
-
     dists = np.linalg.norm(points-center) * (1-alpha)
+ 
     return alpha * points[None, :] + (1-alpha) * center[None, :], dists
 
 
